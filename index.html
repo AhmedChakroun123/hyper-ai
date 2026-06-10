@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyper AI Assistant Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        themeColor: 'var(--theme-color)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --theme-color: #f97316;
+            --radius: 1rem;
+        }
+
+        /* Scrollbar styles */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.5); }
+
+        /* Loader animation */
+        .loader { border-top-color: var(--theme-color); animation: spinner 1s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Dynamic Visual Themes */
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+        }
+        .dark .bg-grid {
+            background-image: linear-gradient(to right, rgba(51, 65, 85, 0.25) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(51, 65, 85, 0.25) 1px, transparent 1px);
+        }
+
+        .bg-gradient-dynamic {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400% !important;
+            animation: gradientAnim 15s ease infinite;
+        }
+        @keyframes gradientAnim {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Dynamic borders matching LTR/RTL dynamically via JS */
+        .custom-radius { border-radius: var(--radius); }
+    </style>
+</head>
+<body id="bodyBg" class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-500 h-screen flex flex-col md:flex-row font-sans overflow-hidden bg-grid">
+
+    <!-- Sidebar Panel (Glassmorphism) -->
+    <aside class="w-full md:w-80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-800/50 p-6 flex flex-col gap-5 shadow-2xl z-30 shrink-0 h-full overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-[var(--theme-color)] rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg transition-all duration-300" id="logoIcon">S</div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight" id="txtTitle">Hyper AI</h1>
+                    <p class="text-xs text-slate-400 dark:text-slate-500" id="txtSubTitle">Control Panel</p>
+                </div>
+            </div>
+            <!-- Language Selector Button -->
+            <button id="langToggle" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:scale-105 active:scale-95 transition-all">العربية</button>
+        </div>
+
+        <!-- Connection Settings -->
+        <div class="flex flex-col gap-4 bg-slate-100/50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-200/40 dark:border-slate-700/30">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400" id="txtSectionConn">Connection Settings</h2>
+            <div class="flex flex-col gap-1.5">
+                <label for="apiKey" class="text-xs font-medium" id="lblApiKey">Groq API Key:</label>
+                <input type="password" id="apiKey" placeholder="gsk_..." class="w-full p-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-[var(--theme-color)] outline-none transition text-left" dir="ltr">
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="modelSelect" class="text-xs font-medium" id="lblModel">AI Model:</label>
+                <select id="modelSelect" class="w-full p-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-[var(--theme-color)] outline-none transition" dir="ltr">
+                    <option value="" id="optModelDefault">Enter API Key first...</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Visual Customization -->
+        <div class="flex flex-col gap-4 bg-slate-100/50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-200/40 dark:border-slate-700/30">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400" id="txtSectionVisual">Visual Theme</h2>
+
+            <!-- Accent Colors -->
+            <div class="flex flex-col gap-2">
+                <span class="text-xs font-medium" id="lblAccentColor">Interface Accent Color:</span>
+                <div class="flex gap-2" id="colorPicker">
+                    <button data-color="#f97316" class="w-6 h-6 rounded-full bg-orange-500 focus:outline-none"></button>
+                    <button data-color="#3b82f6" class="w-6 h-6 rounded-full bg-blue-500 focus:outline-none"></button>
+                    <button data-color="#8b5cf6" class="w-6 h-6 rounded-full bg-violet-500 focus:outline-none"></button>
+                    <button data-color="#10b981" class="w-6 h-6 rounded-full bg-emerald-500 focus:outline-none"></button>
+                    <button data-color="#ec4899" class="w-6 h-6 rounded-full bg-pink-500 focus:outline-none"></button>
+                </div>
+            </div>
+
+            <!-- Background Style -->
+            <div class="flex flex-col gap-1.5">
+                <span class="text-xs font-medium" id="lblBgStyle">Background Style:</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="bgStyleGrid" class="p-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg active shadow-sm">Tech Grid</button>
+                    <button id="bgStylePlain" class="p-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">Minimal Smooth</button>
+                    <button id="bgStyleGradient" class="p-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg col-span-2 text-center">Cinematic Gradient ✨</button>
+                </div>
+            </div>
+
+            <!-- Border Radius -->
+            <div class="flex flex-col gap-1.5">
+                <label for="radiusSlider" class="text-xs font-medium flex justify-between">
+                    <span id="lblRadius">Border Curvature (Radius):</span>
+                    <span id="radiusValue">16px</span>
+                </label>
+                <input type="range" id="radiusSlider" min="0" max="24" value="16" class="w-full accent-[var(--theme-color)]">
+            </div>
+        </div>
+
+        <!-- Dark Mode Toggle -->
+        <div class="flex items-center justify-between mt-auto border-t border-slate-100 dark:border-slate-800 pt-4">
+            <span class="font-medium text-sm" id="lblDarkMode">Dark Mode:</span>
+            <button id="themeToggle" class="w-12 h-6 bg-slate-200 dark:bg-[var(--theme-color)] rounded-full relative transition-colors duration-300">
+                <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform transform dark:translate-x-6"></span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Chat Interface Zone -->
+    <main class="flex-1 flex flex-col h-full relative z-20 overflow-hidden">
+
+        <!-- Messages Flow Area -->
+        <div id="chatBox" class="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
+            <div id="welcomeMessage" class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-4 shadow-xl border border-slate-200/40 dark:border-slate-800/50 custom-radius transition-all duration-300 max-w-[80%] self-start">
+                <p class="leading-relaxed text-sm" id="txtWelcome">Welcome to your premium custom interface. Paste your Groq API Key into the sidebar, tweak your custom aesthetics, and experience the fastest AI inference on the planet.</p>
+            </div>
+        </div>
+
+        <!-- Premium Message Input Container -->
+        <div class="p-6 bg-gradient-to-t from-slate-50 via-slate-50/90 to-transparent dark:from-slate-950 dark:via-slate-950/90 shrink-0">
+            <div id="inputWrapper" class="max-w-4xl mx-auto relative flex items-center shadow-xl custom-radius bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60">
+                <textarea id="messageInput" rows="1" placeholder="Ask your hyper assistant anything..." class="w-full bg-transparent py-4 resize-none outline-none dark:text-white leading-relaxed text-sm px-6" oninput="this.style.height = '';this.style.height = this.scrollHeight + 'px'"></textarea>
+                <button id="sendBtn" class="absolute w-11 h-11 bg-[var(--theme-color)] hover:scale-105 active:scale-95 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" id="sendIcon" class="h-5 w-5 transform" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript & Localization Core -->
+    <script>
+        const apiKeyInput = document.getElementById('apiKey');
+        const modelSelect = document.getElementById('modelSelect');
+        const themeToggle = document.getElementById('themeToggle');
+        const chatBox = document.getElementById('chatBox');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const bodyBg = document.getElementById('bodyBg');
+        const radiusSlider = document.getElementById('radiusSlider');
+        const radiusValue = document.getElementById('radiusValue');
+        const logoIcon = document.getElementById('logoIcon');
+        const langToggle = document.getElementById('langToggle');
+        const sendIcon = document.getElementById('sendIcon');
+
+        // --- Localization Map (Dual Language Dictionary) ---
+        const translations = {
+            en: {
+                dir: "ltr",
+                title: "Hyper AI",
+                subTitle: "Control Panel",
+                sectionConn: "Connection Settings",
+                lblApiKey: "Groq API Key:",
+                lblModel: "AI Model:",
+                optModelDefault: "Enter API Key first...",
+                optModelLoading: "Fetching stable models...",
+                optModelError: "❌ Failed to fetch models",
+                sectionVisual: "Visual Theme",
+                lblAccentColor: "Interface Accent Color:",
+                lblBgStyle: "Background Style:",
+                bgGrid: "Tech Grid",
+                bgPlain: "Minimal Smooth",
+                bgGradient: "Cinematic Gradient ✨",
+                lblRadius: "Border Curvature (Radius):",
+                lblDarkMode: "Dark Mode:",
+                txtWelcome: "Welcome to your premium custom interface. Paste your Groq API Key into the sidebar, tweak your custom aesthetics, and experience the fastest AI inference on the planet.",
+                inputPlaceholder: "Ask your hyper assistant anything...",
+                alertKey: "Please enter your API Key first!",
+                alertModel: "Please wait for stable models to load.",
+                errUnexpected: "An unexpected error occurred",
+                langBtn: "العربية"
+            },
+            ar: {
+                dir: "rtl",
+                title: "الذكاء الخارق",
+                subTitle: "لوحة تحكم المظهر",
+                sectionConn: "إعدادات الاتصال",
+                lblApiKey: "مفتاح Groq API:",
+                lblModel: "النموذج الذكي:",
+                optModelDefault: "أدخل المفتاح أولاً...",
+                optModelLoading: "جاري جلب النماذج المستقرة...",
+                optModelError: "❌ فشل جلب النماذج",
+                sectionVisual: "التخصيص البصري",
+                lblAccentColor: "اللون الرئيسي للواجهة:",
+                lblBgStyle: "نمط الخلفية:",
+                bgGrid: "شبكة تقنية",
+                bgPlain: "سادة ناعم",
+                bgGradient: "تدرج سينمائي متحرك ✨",
+                lblRadius: "انحناء الحواف (Radius):",
+                lblDarkMode: "الوضع الداكن:",
+                txtWelcome: "مرحباً بك في واجهتك المخصصة الفخمة. ضع مفتاح الـ API الخاص بك في القائمة الجانبية، واختر الألوان والتأثيرات التي تعبر عن شخصيتك لتبدأ التجربة الأسرع في العالم.",
+                inputPlaceholder: "اسأل واجهتك الذكية عن أي شيء...",
+                alertKey: "يرجى إدخال مفتاح API أولاً!",
+                alertModel: "يرجى انتظار تحميل النماذج المستقرة.",
+                errUnexpected: "حدث خطأ غير متوقع",
+                langBtn: "English"
+            }
+        };
+
+        let currentLang = localStorage.getItem('appLanguage') || 'en';
+
+        function applyLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('appLanguage', lang);
+            const dict = translations[lang];
+
+            // Apply Document Level Parameters
+            document.documentElement.lang = lang;
+            document.documentElement.dir = dict.dir;
+            document.body.dir = dict.dir;
+
+            // DOM Updates
+            document.getElementById('txtTitle').textContent = dict.title;
+            document.getElementById('txtSubTitle').textContent = dict.subTitle;
+            document.getElementById('txtSectionConn').textContent = dict.sectionConn;
+            document.getElementById('lblApiKey').textContent = dict.lblApiKey;
+            document.getElementById('lblModel').textContent = dict.lblModel;
+            document.getElementById('txtSectionVisual').textContent = dict.sectionVisual;
+            document.getElementById('lblAccentColor').textContent = dict.lblAccentColor;
+            document.getElementById('lblBgStyle').textContent = dict.lblBgStyle;
+            document.getElementById('bgStyleGrid').textContent = dict.bgGrid;
+            document.getElementById('bgStylePlain').textContent = dict.bgPlain;
+            document.getElementById('bgStyleGradient').textContent = dict.bgGradient;
+            document.getElementById('lblRadius').textContent = dict.lblRadius;
+            document.getElementById('lblDarkMode').textContent = dict.lblDarkMode;
+            messageInput.placeholder = dict.inputPlaceholder;
+            langToggle.textContent = dict.langBtn;
+
+            // Handle Welcome message if state is pristine
+            const welcomeTextNode = document.getElementById('txtWelcome');
+            if(welcomeTextNode) welcomeTextNode.textContent = dict.txtWelcome;
+
+            // Adjust layout spacing and icons for directionality
+            if (lang === 'ar') {
+                sendBtn.style.left = '0.75rem';
+                sendBtn.style.right = 'auto';
+                sendIcon.classList.add('-rotate-90');
+                document.getElementById('inputWrapper').classList.add('border-l-0');
+            } else {
+                sendBtn.style.right = '0.75rem';
+                sendBtn.style.left = 'auto';
+                sendIcon.classList.remove('-rotate-90');
+                sendIcon.classList.add('rotate-90');
+                document.getElementById('inputWrapper').classList.remove('border-l-0');
+            }
+
+            // Re-render empty placeholder if models aren't loaded yet
+            if (!modelSelect.value || modelSelect.value === "") {
+                document.getElementById('optModelDefault').textContent = dict.optModelDefault;
+            }
+        }
+
+        langToggle.addEventListener('click', () => {
+            applyLanguage(currentLang === 'en' ? 'ar' : 'en');
+        });
+
+        // --- Customization Engine (Aesthetics) ---
+        function setThemeColor(color) {
+            document.documentElement.style.setProperty('--theme-color', color);
+            localStorage.setItem('customThemeColor', color);
+            sendBtn.style.boxShadow = `0 4px 12px ${color}44`;
+            logoIcon.style.boxShadow = `0 4px 12px ${color}44`;
+
+            document.querySelectorAll('#colorPicker button').forEach(btn => {
+                if(btn.getAttribute('data-color') === color) {
+                    btn.style.transform = 'scale(1.2)';
+                    btn.style.boxShadow = `0 0 0 3px ${color}66`;
+                } else {
+                    btn.style.transform = 'scale(1)';
+                    btn.style.boxShadow = `none`;
+                }
+            });
+        }
+
+        document.querySelectorAll('#colorPicker button').forEach(button => {
+            button.addEventListener('click', () => setThemeColor(button.getAttribute('data-color')));
+        });
+
+        function setBgStyle(style) {
+            bodyBg.classList.remove('bg-grid', 'bg-gradient-dynamic');
+            document.querySelectorAll('[id^="bgStyle"]').forEach(btn => btn.classList.remove('bg-slate-200', 'dark:bg-slate-700', 'border-slate-400'));
+
+            if (style === 'grid') {
+                bodyBg.classList.add('bg-grid');
+                document.getElementById('bgStyleGrid').classList.add('bg-slate-200', 'dark:bg-slate-700', 'border-slate-400');
+            } else if (style === 'gradient') {
+                bodyBg.classList.add('bg-gradient-dynamic');
+                document.getElementById('bgStyleGradient').classList.add('bg-slate-200', 'dark:bg-slate-700', 'border-slate-400');
+            } else {
+                document.getElementById('bgStylePlain').classList.add('bg-slate-200', 'dark:bg-slate-700', 'border-slate-400');
+            }
+            localStorage.setItem('customBgStyle', style);
+        }
+
+        document.getElementById('bgStyleGrid').addEventListener('click', () => setBgStyle('grid'));
+        document.getElementById('bgStylePlain').addEventListener('click', () => setBgStyle('plain'));
+        document.getElementById('bgStyleGradient').addEventListener('click', () => setBgStyle('gradient'));
+
+        function setRadius(val) {
+            document.documentElement.style.setProperty('--radius', `${val}px`);
+            radiusValue.textContent = `${val}px`;
+            localStorage.setItem('customRadius', val);
+        }
+        radiusSlider.addEventListener('input', (e) => setRadius(e.target.value));
+
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // --- Core Groq Connection Engine ---
+        async function fetchModels() {
+            const apiKey = apiKeyInput.value.trim();
+            const dict = translations[currentLang];
+            if (!apiKey) {
+                modelSelect.innerHTML = `<option value="">${dict.optModelDefault}</option>`;
+                return;
+            }
+
+            modelSelect.innerHTML = `<option value="">${dict.optModelLoading}</option>`;
+            modelSelect.disabled = true;
+
+            try {
+                const response = await fetch('https://api.groq.com/openai/v1/models', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${apiKey}` }
+                });
+
+                if (!response.ok) throw new Error('Invalid key');
+
+                const data = await response.json();
+                modelSelect.innerHTML = '';
+
+                const stablePrefixes = ['llama', 'gemma', 'mixtral'];
+                const chatModels = data.data.filter(model =>
+                    stablePrefixes.some(prefix => model.id.toLowerCase().startsWith(prefix)) &&
+                    !model.id.includes('whisper')
+                );
+
+                chatModels.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.id;
+                    option.textContent = model.id;
+                    modelSelect.appendChild(option);
+                });
+
+                const savedModel = localStorage.getItem('groqModel');
+                if (savedModel && [...modelSelect.options].some(opt => opt.value === savedModel)) {
+                    modelSelect.value = savedModel;
+                } else if (modelSelect.options.length > 0) {
+                    modelSelect.value = modelSelect.options[0].value;
+                    localStorage.setItem('groqModel', modelSelect.value);
+                }
+
+            } catch (error) {
+                modelSelect.innerHTML = `<option value="">${dict.optModelError}</option>`;
+            } finally {
+                modelSelect.disabled = false;
+            }
+        }
+
+        // --- Message Pipeline ---
+        function appendMessage(role, content) {
+            const msgDiv = document.createElement('div');
+            const isUser = role === 'user';
+            const radius = 'var(--radius)';
+
+            if (isUser) {
+                msgDiv.className = `p-4 text-white self-end border border-transparent custom-radius transition-all duration-300 max-w-[80%] shadow-md`;
+                msgDiv.style.backgroundColor = 'var(--theme-color)';
+                // Dynamic border rounding for dialogue
+                msgDiv.style.borderRadius = currentLang === 'ar'
+                    ? `${radius} ${radius} 0 ${radius}`
+                    : `${radius} ${radius} ${radius} 0`;
+            } else {
+                msgDiv.className = `p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md text-slate-800 dark:text-slate-100 self-start border border-slate-200/40 dark:border-slate-800/50 custom-radius transition-all duration-300 shadow-xl max-w-[80%]`;
+                msgDiv.style.borderRadius = currentLang === 'ar'
+                    ? `${radius} ${radius} ${radius} 0`
+                    : `${radius} ${radius} 0 ${radius}`;
+            }
+
+            msgDiv.innerHTML = content.replace(/\n/g, '<br>');
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            return msgDiv;
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            const apiKey = apiKeyInput.value.trim();
+            const model = modelSelect.value;
+            const dict = translations[currentLang];
+
+            if (!message) return;
+            if (!apiKey) { alert(dict.alertKey); return; }
+            if (!model) { alert(dict.alertModel); return; }
+
+            messageInput.value = '';
+            messageInput.style.height = '';
+            appendMessage('user', message);
+
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-4 border border-slate-200/40 dark:border-slate-800/50 custom-radius shadow-xl max-w-[80%] self-start flex items-center justify-center";
+            loadingDiv.innerHTML = '<div class="w-5 h-5 border-2 border-gray-300 rounded-full loader"></div>';
+            chatBox.appendChild(loadingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ model: model, messages: [{ role: "user", content: message }] })
+                });
+
+                if(document.body.contains(loadingDiv)) loadingDiv.remove();
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || dict.errUnexpected);
+                }
+
+                const data = await response.json();
+                const aiResponse = data.choices[0].message.content;
+                appendMessage('ai', aiResponse);
+
+            } catch (error) {
+                if(document.body.contains(loadingDiv)) loadingDiv.remove();
+                appendMessage('ai', `❌ ${error.message}`);
+            }
+        }
+
+        // --- Initialization Chain ---
+        applyLanguage(currentLang);
+
+        const savedColor = localStorage.getItem('customThemeColor') || '#f97316';
+        setThemeColor(savedColor);
+        const savedBg = localStorage.getItem('customBgStyle') || 'grid';
+        setBgStyle(savedBg);
+        const savedRadius = localStorage.getItem('customRadius') || '16';
+        radiusSlider.value = savedRadius;
+        setRadius(savedRadius);
+
+        apiKeyInput.value = localStorage.getItem('groqApiKey') || '';
+        if (apiKeyInput.value) fetchModels();
+
+        apiKeyInput.addEventListener('change', () => {
+            localStorage.setItem('groqApiKey', apiKeyInput.value.trim());
+            fetchModels();
+        });
+
+        modelSelect.addEventListener('change', () => {
+            localStorage.setItem('groqModel', modelSelect.value);
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
